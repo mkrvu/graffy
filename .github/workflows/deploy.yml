@@ -7,12 +7,12 @@ on:
 
 # Secrets (Settings → Secrets and variables → Actions):
 #   VPS_HOST      — IP или hostname сервера
-#   SSH_USER      — пользователь SSH (например ubuntu)
-#   SSH_KEY       — приватный ключ (PEM)
+#   SSH_PASSWORD  — пароль SSH (или SSH_KEY — приватный ключ PEM)
+#   SSH_USER      — пользователь SSH (необязательно, по умолчанию root)
 #   SSH_PORT      — порт SSH (необязательно, по умолчанию 22)
-#   DEPLOY_PATH   — путь к клону на сервере, напр. /home/ubuntu/graffy
+#   DEPLOY_PATH   — путь к клону на сервере (необязательно, по умолчанию /opt/graffy)
 #
-# На сервере: клон, .env, один раз: bash scripts/init-letsencrypt.sh
+# Первая установка сервера: Actions → Server setup (scripts/server-setup.sh).
 
 jobs:
   deploy:
@@ -35,12 +35,19 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER || 'root' }}
+          password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          command_timeout: 30m
           script: |
             set -e
-            cd ${{ secrets.DEPLOY_PATH }}
+            DEPLOY_PATH='${{ secrets.DEPLOY_PATH || '/opt/graffy' }}'
+            if [ ! -f "$DEPLOY_PATH/.env" ]; then
+              echo "Сервер ещё не установлен ($DEPLOY_PATH/.env нет) — запустите workflow Server setup. Пропускаю."
+              exit 0
+            fi
+            cd "$DEPLOY_PATH"
             echo "Pulling latest changes..."
             git pull origin main
             echo "Building and restarting services..."

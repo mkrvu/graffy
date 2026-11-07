@@ -1,0 +1,48 @@
+name: Server setup
+
+# Одноразовая установка GRAFFY на новый VPS. Запуск: Actions → Server setup → Run workflow.
+# Secrets (Settings → Secrets and variables → Actions):
+#   VPS_HOST      — IP сервера
+#   SSH_PASSWORD  — пароль root (или SSH_KEY — приватный ключ)
+#   SSH_USER      — необязательно, по умолчанию root
+#   SSH_PORT      — необязательно, по умолчанию 22
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: "Домен (A-запись уже указывает на IP сервера)"
+        required: true
+      email:
+        description: "E-mail для Let's Encrypt"
+        required: true
+
+jobs:
+  setup:
+    name: Install on VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOMAIN: ${{ inputs.domain }}
+          CERTBOT_EMAIL: ${{ inputs.email }}
+        with:
+          envs: DOMAIN,CERTBOT_EMAIL
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USER || 'root' }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          command_timeout: 60m
+          script: |
+            set -e
+            export DEBIAN_FRONTEND=noninteractive
+            command -v git >/dev/null || (apt-get update -q && apt-get install -y -q git)
+            if [ -d /opt/graffy/.git ]; then
+              git -C /opt/graffy pull --ff-only origin main
+            else
+              git clone https://github.com/${{ github.repository }}.git /opt/graffy
+            fi
+            cd /opt/graffy
+            DOMAIN="$DOMAIN" CERTBOT_EMAIL="$CERTBOT_EMAIL" bash scripts/server-setup.sh
