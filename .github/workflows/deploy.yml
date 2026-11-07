@@ -18,12 +18,20 @@ jobs:
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
 
     steps:
+      - name: Skip if server secrets are not configured
+        if: env.VPS_HOST == ''
+        run: echo "::notice::VPS_HOST secret is not set — deploy skipped. Configure secrets in Settings → Secrets and variables → Actions."
+
       - name: Checkout
+        if: env.VPS_HOST != ''
         uses: actions/checkout@v4
 
       - name: Deploy via SSH
+        if: env.VPS_HOST != ''
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
