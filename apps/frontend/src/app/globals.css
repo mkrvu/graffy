@@ -1,0 +1,349 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --bg: #ffffff;
+  --bg-secondary: #f5f3ff;
+
+  /* Text */
+  --fg: #282828;
+  --fg-secondary: #4a4a4a;
+  --fg-tertiary: #a7a5a6;
+
+  /* Cards / Inputs */
+  --card-bg: #ffffff;
+  --card-bg-2: #f9f7ff;
+  --input-bg: #ffffff;
+  --input-border: #a7a5a6;
+  --input-border-focus: #9957ff;
+
+  /* Accent */
+  --accent: #9957ff;
+  --accent-light: #ccabff;
+  --accent-muted: rgba(153, 87, 255, 0.25);
+
+  /* UI chrome */
+  --border: rgba(0, 0, 0, 0.12);
+  --divider: #9093a6;
+  --scrollbar-bg: #ede9ff;
+  --scrollbar-thumb: #ccabff;
+  --nav-bg: rgba(255, 255, 255, 0.88);
+  --nav-border: rgba(0, 0, 0, 0.07);
+  --modal-overlay: rgba(0, 0, 0, 0.4);
+  --nav-button-bg: #9957ff40;
+
+  /* Settings */
+  --settings-btn-muted: #ebebeb;
+  --filter-calendar: #f5f5f5;
+  --settings-divider: rgba(0, 0, 0, 0.08);
+  --toggle-off: #d1d5db;
+  --btn-accent: #ccabff;
+  --sheet-bg: #ffffff;
+  --filter-btn-bg: #f5f5f5;
+  --nav-icon-inactive: #e5e5e5;
+  --task-divider: rgba(40, 40, 40, 0.05);
+}
+
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg: #282828;
+  --bg-secondary: #1e1e1e;
+
+  /* Text */
+  --fg: #ffffff;
+  --fg-secondary: #e0e0e0;
+  --fg-tertiary: #a7a5a6;
+
+  /* Cards / Inputs */
+  --card-bg: #282828;
+  --card-bg-2: #323232;
+  --input-bg: #282828;
+  --input-border: #a7a5a6;
+  --input-border-focus: #9957ff;
+
+  /* Accent — same in both themes */
+  --accent: #9957ff;
+  --accent-light: #ccabff;
+  --accent-muted: rgba(153, 87, 255, 0.25);
+  --nav-button-bg: #e5d5ff; /* UI chrome */
+  --border: rgba(255, 255, 255, 0.08);
+  --divider: #9093a6;
+  --scrollbar-bg: #323232;
+  --scrollbar-thumb: #6b6b6b;
+  --nav-bg: rgba(40, 40, 40, 0.92);
+  --nav-border: rgba(255, 255, 255, 0.06);
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Settings */
+  --filter-calendar: #454545;
+  --settings-btn-muted: #454545;
+  --settings-divider: rgba(255, 255, 255, 0.08);
+  --toggle-off: #4b5563;
+  --btn-accent: rgba(153, 87, 255, 0.5);
+  --sheet-bg: #282828;
+  --filter-btn-bg: #454545;
+  --nav-icon-inactive: #454545;
+  --task-divider: rgba(69, 69, 69, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+@layer utilities {
+  .bg-app {
+    background-color: var(--bg);
+  }
+  .bg-bg {
+    background-color: var(--bg);
+  }
+  .bg-app-secondary {
+    background-color: var(--bg-secondary);
+  }
+  .bg-card {
+    background-color: var(--card-bg);
+  }
+  .bg-card-2 {
+    background-color: var(--card-bg-2);
+  }
+  .bg-input {
+    background-color: var(--input-bg);
+  }
+  .text-primary {
+    color: var(--fg);
+  }
+  .text-secondary {
+    color: var(--fg-secondary);
+  }
+  .text-tertiary {
+    color: var(--fg-tertiary);
+  }
+  .text-accent {
+    color: var(--accent);
+  }
+  .text-accent-light {
+    color: var(--accent-light);
+  }
+  .border-theme {
+    border-color: var(--border);
+  }
+  .border-input {
+    border-color: var(--input-border);
+  }
+  .border-accent {
+    border-color: var(--accent);
+  }
+  .bg-accent {
+    background-color: var(--accent);
+  }
+  .bg-accent-muted {
+    background-color: var(--accent-muted);
+  }
+  .nav-bg {
+    background-color: var(--nav-bg);
+    border-color: var(--nav-border);
+  }
+  .modal-overlay {
+    background-color: var(--modal-overlay);
+  }
+  .bg-settings-btn-muted {
+    background-color: var(--settings-btn-muted);
+  }
+  .bg-settings-divider {
+    background-color: var(--settings-divider);
+  }
+  .border-settings-divider {
+    border-color: var(--settings-divider);
+  }
+  .bg-toggle-off {
+    background-color: var(--toggle-off);
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.35s ease-out;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+  .animate-float-up {
+    animation: floatUp 1.5s ease-out forwards;
+  }
+}
+
+/* ── react-day-picker custom theme ── */
+.rdp-root {
+  --rdp-accent-color: #9957ff;
+  --rdp-accent-background-color: rgba(153, 87, 255, 0.15);
+  width: 100%;
+}
+.rdp-months {
+  width: 100%;
+}
+.rdp-month {
+  width: 100%;
+}
+.rdp-month_grid {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rdp-month_caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 12px;
+  position: relative;
+}
+.rdp-caption_label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.rdp-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-60%);
+}
+.rdp-button_previous,
+.rdp-button_next {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  opacity: 0.6;
+}
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  opacity: 1;
+}
+.rdp-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.rdp-weekday {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-tertiary);
+  text-align: center;
+  padding: 4px 0;
+}
+/* Сб и Вс фиолетовые */
+.rdp-weekday:nth-child(6),
+.rdp-weekday:nth-child(7) {
+  color: #9957ff;
+}
+.rdp-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.rdp-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 0;
+}
+.rdp-day_button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.rdp-day_button:hover {
+  background: rgba(153, 87, 255, 0.12);
+}
+.rdp-selected .rdp-day_button {
+  background: #9957ff;
+  color: white;
+  font-weight: 600;
+}
+.rdp-today .rdp-day_button {
+  color: #9957ff;
+  font-weight: 600;
+}
+.rdp-outside .rdp-day_button {
+  opacity: 0;
+  pointer-events: none;
+}
+.rdp-disabled .rdp-day_button {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* Range */
+.rdp-range_start .rdp-day_button,
+.rdp-range_end .rdp-day_button {
+  background: #9957ff;
+  color: white;
+  font-weight: 600;
+  border-radius: 50%;
+}
+.rdp-range_middle .rdp-day_button {
+  background: rgba(153, 87, 255, 0.15);
+  border-radius: 0;
+  width: 100%;
+}
+.rdp-range_start {
+  border-radius: 50% 0 0 50%;
+  background: rgba(153, 87, 255, 0.15);
+}
+.rdp-range_end {
+  border-radius: 0 50% 50% 0;
+  background: rgba(153, 87, 255, 0.15);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--fg);
+  -webkit-box-shadow: 0 0 0px 1000px var(--card-bg) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}

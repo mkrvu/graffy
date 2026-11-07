@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+# Secrets (Settings → Secrets and variables → Actions):
+#   VPS_HOST      — IP или hostname сервера
+#   SSH_USER      — пользователь SSH (например ubuntu)
+#   SSH_KEY       — приватный ключ (PEM)
+#   SSH_PORT      — порт SSH (необязательно, по умолчанию 22)
+#   DEPLOY_PATH   — путь к клону на сервере, напр. /home/ubuntu/graffy
+#
+# На сервере: клон, .env, один раз: bash scripts/init-letsencrypt.sh
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            echo "Pulling latest changes..."
+            git pull origin main
+            echo "Building and restarting services..."
+            docker compose -f docker-compose.prod.yml --profile ssl pull --ignore-pull-failures || true
+            docker compose -f docker-compose.prod.yml --profile ssl up --build -d
+            docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload || true
+            echo "Cleaning up unused images..."
+            docker image prune -f
+            echo "Deploy complete."

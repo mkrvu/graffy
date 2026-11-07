@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="GraffyApi.Application/GraffyApi.Application.csproj" />
+  <Project Path="GraffyApi.Contracts/GraffyApi.Contracts.csproj" />
+  <Project Path="GraffyApi.Domain/GraffyApi.Domain.csproj" />
+  <Project Path="GraffyApi/GraffyApi.csproj" />
+</Solution>
