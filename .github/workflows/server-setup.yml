@@ -46,6 +46,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 120s
           source: graffy-src.tgz,graffy-images.tgz
           target: /tmp
           command_timeout: 30m
@@ -62,6 +63,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 120s
           command_timeout: 60m
           script: |
             set -e
@@ -81,6 +83,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 120s
           command_timeout: 5m
           script: |
             echo "=== uptime / memory ==="; uptime; free -h
