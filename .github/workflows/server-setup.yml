@@ -22,6 +22,24 @@ jobs:
     name: Install on VPS
     runs-on: ubuntu-latest
     steps:
+      # github.com часто недоступен с российских VPS, поэтому код отправляем с раннера по SSH, без git clone на сервере.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pack source
+        run: tar czf graffy-src.tgz --exclude=.git --exclude=graffy-src.tgz .
+
+      - name: Upload source to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USER || 'root' }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: graffy-src.tgz
+          target: /tmp
+
       - name: Install via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -38,11 +56,8 @@ jobs:
           script: |
             set -e
             export DEBIAN_FRONTEND=noninteractive
-            command -v git >/dev/null || (apt-get update -q && apt-get install -y -q git)
-            if [ -d /opt/graffy/.git ]; then
-              git -C /opt/graffy pull --ff-only origin main
-            else
-              git clone https://github.com/${{ github.repository }}.git /opt/graffy
-            fi
+            mkdir -p /opt/graffy
+            tar xzf /tmp/graffy-src.tgz -C /opt/graffy
+            rm -f /tmp/graffy-src.tgz
             cd /opt/graffy
             DOMAIN="$DOMAIN" CERTBOT_EMAIL="$CERTBOT_EMAIL" bash scripts/server-setup.sh
