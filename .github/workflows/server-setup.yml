@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Pack source
-        run: tar czf graffy-src.tgz --exclude=.git --exclude=graffy-src.tgz .
+        run: tar czf /tmp/graffy-src.tgz --exclude=.git . && mv /tmp/graffy-src.tgz graffy-src.tgz
 
       - name: Upload source to VPS
         uses: appleboy/scp-action@v0.1.7

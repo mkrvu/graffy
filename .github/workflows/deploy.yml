@@ -33,7 +33,7 @@ jobs:
       # github.com часто недоступен с российских VPS: код отправляем с раннера, а не git pull на сервере.
       - name: Pack source
         if: env.VPS_HOST != ''
-        run: tar czf graffy-src.tgz --exclude=.git --exclude=graffy-src.tgz .
+        run: tar czf /tmp/graffy-src.tgz --exclude=.git . && mv /tmp/graffy-src.tgz graffy-src.tgz
 
       - name: Upload source to VPS
         if: env.VPS_HOST != ''
