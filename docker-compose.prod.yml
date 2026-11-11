@@ -26,6 +26,7 @@ services:
     restart: always
 
   frontend:
+    image: graffy-frontend:latest
     build:
       context: ./apps/frontend
       target: prod
@@ -36,6 +37,7 @@ services:
     restart: always
 
   backend:
+    image: graffy-backend:latest
     build:
       context: ./apps/backend
     environment:

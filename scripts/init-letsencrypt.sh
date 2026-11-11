@@ -45,8 +45,15 @@ openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
   -out "$DATA_PATH/conf/live/$DOMAIN/fullchain.pem" \
   -subj "/CN=$DOMAIN"
 
-echo ">>> Сборка и запуск стека (nginx с временным сертификатом)"
-docker compose -f docker-compose.prod.yml --profile ssl up -d --build nginx backend frontend db
+BUILD_FLAG="--build"
+# Если образы уже загружены (собраны в GitHub Actions), на сервере ничего не собираем:
+# с российских VPS часто недоступны mcr.microsoft.com и др.
+if docker image inspect graffy-backend:latest graffy-frontend:latest >/dev/null 2>&1; then
+  BUILD_FLAG="--no-build"
+fi
+
+echo ">>> Запуск стека (nginx с временным сертификатом), $BUILD_FLAG"
+docker compose -f docker-compose.prod.yml --profile ssl up -d $BUILD_FLAG nginx backend frontend db
 
 echo ">>> Запрос сертификата Let's Encrypt"
 docker compose -f docker-compose.prod.yml --profile ssl run --rm --entrypoint certbot certbot certonly \

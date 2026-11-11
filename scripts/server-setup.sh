@@ -97,9 +97,20 @@ if [ -n "$server_ip" ] && [ "$domain_ip" != "$server_ip" ]; then
   exit 1
 fi
 
+if [ -f /tmp/graffy-images.tgz ]; then
+  echo ">>> Загрузка готовых Docker-образов (собраны в GitHub Actions)"
+  docker load < /tmp/graffy-images.tgz
+  rm -f /tmp/graffy-images.tgz
+fi
+
+BUILD_FLAG="--build"
+if docker image inspect graffy-backend:latest graffy-frontend:latest >/dev/null 2>&1; then
+  BUILD_FLAG="--no-build"
+fi
+
 echo ">>> SSL и запуск"
 bash scripts/init-letsencrypt.sh
-docker compose -f docker-compose.prod.yml --profile ssl up -d --build
+docker compose -f docker-compose.prod.yml --profile ssl up -d $BUILD_FLAG
 docker compose -f docker-compose.prod.yml ps
 
 echo ">>> Готово: https://${DOMAIN}"

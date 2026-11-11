@@ -29,7 +29,16 @@ jobs:
       - name: Pack source
         run: tar czf /tmp/graffy-src.tgz --exclude=.git . && mv /tmp/graffy-src.tgz graffy-src.tgz
 
-      - name: Upload source to VPS
+      # Образы собираем здесь: с российских VPS недоступны mcr.microsoft.com и часть реестров.
+      - name: Build Docker images
+        env:
+          NEXT_PUBLIC_API_URL: https://${{ inputs.domain }}
+        run: docker compose -f docker-compose.prod.yml build frontend backend
+
+      - name: Save Docker images
+        run: docker save graffy-frontend:latest graffy-backend:latest | gzip > /tmp/graffy-images.tgz && mv /tmp/graffy-images.tgz graffy-images.tgz
+
+      - name: Upload source and images to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -37,8 +46,9 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: graffy-src.tgz
+          source: graffy-src.tgz,graffy-images.tgz
           target: /tmp
+          command_timeout: 30m
 
       - name: Install via SSH
         uses: appleboy/ssh-action@v1.0.3

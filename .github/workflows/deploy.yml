@@ -35,7 +35,19 @@ jobs:
         if: env.VPS_HOST != ''
         run: tar czf /tmp/graffy-src.tgz --exclude=.git . && mv /tmp/graffy-src.tgz graffy-src.tgz
 
-      - name: Upload source to VPS
+      # Образы собираем здесь: с российских VPS недоступны mcr.microsoft.com и часть реестров.
+      # DOMAIN (необязательный секрет) нужен для NEXT_PUBLIC_API_URL; по умолчанию graffy.ru.
+      - name: Build Docker images
+        if: env.VPS_HOST != ''
+        env:
+          NEXT_PUBLIC_API_URL: https://${{ secrets.DOMAIN || 'graffy.ru' }}
+        run: docker compose -f docker-compose.prod.yml build frontend backend
+
+      - name: Save Docker images
+        if: env.VPS_HOST != ''
+        run: docker save graffy-frontend:latest graffy-backend:latest | gzip > /tmp/graffy-images.tgz && mv /tmp/graffy-images.tgz graffy-images.tgz
+
+      - name: Upload source and images to VPS
         if: env.VPS_HOST != ''
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -44,8 +56,9 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: graffy-src.tgz
+          source: graffy-src.tgz,graffy-images.tgz
           target: /tmp
+          command_timeout: 30m
 
       - name: Deploy via SSH
         if: env.VPS_HOST != ''
@@ -60,17 +73,20 @@ jobs:
           script: |
             set -e
             DEPLOY_PATH='${{ secrets.DEPLOY_PATH || '/opt/graffy' }}'
-            if [ ! -f "$DEPLOY_PATH/.env" ]; then
-              echo "Сервер ещё не установлен ($DEPLOY_PATH/.env нет) — запустите workflow Server setup. Пропускаю."
+            if [ ! -f "$DEPLOY_PATH/.env" ] || [ ! -d "$DEPLOY_PATH/certbot/conf/live" ]; then
+              echo "Сервер ещё не установлен (нет $DEPLOY_PATH/.env или сертификата) — запустите workflow Server setup. Пропускаю."
+              rm -f /tmp/graffy-src.tgz /tmp/graffy-images.tgz
               exit 0
             fi
             cd "$DEPLOY_PATH"
             echo "Unpacking uploaded source..."
             tar xzf /tmp/graffy-src.tgz -C "$DEPLOY_PATH"
             rm -f /tmp/graffy-src.tgz
-            echo "Building and restarting services..."
-            docker compose -f docker-compose.prod.yml --profile ssl pull --ignore-pull-failures || true
-            docker compose -f docker-compose.prod.yml --profile ssl up --build -d
+            echo "Loading prebuilt images..."
+            docker load < /tmp/graffy-images.tgz
+            rm -f /tmp/graffy-images.tgz
+            echo "Restarting services..."
+            docker compose -f docker-compose.prod.yml --profile ssl up --no-build -d
             docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload || true
             echo "Cleaning up unused images..."
             docker image prune -f
