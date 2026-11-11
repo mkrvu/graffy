@@ -30,6 +30,23 @@ jobs:
         if: env.VPS_HOST != ''
         uses: actions/checkout@v4
 
+      # github.com часто недоступен с российских VPS: код отправляем с раннера, а не git pull на сервере.
+      - name: Pack source
+        if: env.VPS_HOST != ''
+        run: tar czf graffy-src.tgz --exclude=.git --exclude=graffy-src.tgz .
+
+      - name: Upload source to VPS
+        if: env.VPS_HOST != ''
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USER || 'root' }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: graffy-src.tgz
+          target: /tmp
+
       - name: Deploy via SSH
         if: env.VPS_HOST != ''
         uses: appleboy/ssh-action@v1.0.3
@@ -48,8 +65,9 @@ jobs:
               exit 0
             fi
             cd "$DEPLOY_PATH"
-            echo "Pulling latest changes..."
-            git pull origin main
+            echo "Unpacking uploaded source..."
+            tar xzf /tmp/graffy-src.tgz -C "$DEPLOY_PATH"
+            rm -f /tmp/graffy-src.tgz
             echo "Building and restarting services..."
             docker compose -f docker-compose.prod.yml --profile ssl pull --ignore-pull-failures || true
             docker compose -f docker-compose.prod.yml --profile ssl up --build -d
