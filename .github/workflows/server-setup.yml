@@ -71,3 +71,22 @@ jobs:
             rm -f /tmp/graffy-src.tgz
             cd /opt/graffy
             DOMAIN="$DOMAIN" CERTBOT_EMAIL="$CERTBOT_EMAIL" bash scripts/server-setup.sh
+
+      - name: Diagnostics (on failure)
+        if: failure()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USER || 'root' }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          command_timeout: 5m
+          script: |
+            echo "=== uptime / memory ==="; uptime; free -h
+            echo "=== containers ==="; docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+            echo "=== nginx logs ==="; docker logs --tail 40 graffy-nginx-1 2>&1 || true
+            echo "=== listening :80/:443 ==="; ss -tlnp | grep -E ':(80|443)\b' || echo "nothing listens on 80/443"
+            echo "=== local curl ==="; curl -sI --max-time 5 http://127.0.0.1/ | head -5 || echo "local curl failed"
+            echo "=== ufw / iptables ==="; (ufw status 2>&1 | head -12); iptables -S INPUT 2>&1 | head -12
+            echo "=== OOM ==="; dmesg 2>/dev/null | grep -i -E 'out of memory|killed process' | tail -5 || true
